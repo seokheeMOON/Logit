@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="date" content="2019-04-24" />
+
+<title>Logistic Regression Model</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+<style type="text/css">
+  p.abstract{
+    text-align: center;
+    font-weight: bold;
+  }
+  div.abstract{
+    margin: auto;
+    width: 90%;
+  }
+</style>
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Logistic Regression Model</h1>
+<h4 class="author">Seokhee Moon (Student ID: 5285129)</h4>
+<address class="author_afil">
+Free University of Berlin<br><h4 class="date">2019-04-24</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+Logistic Regression is a very widely used regression method for a binary response variable. The package “Logit” provides a generic function “logit” with which one can fit a logistic regression model, together with some S3 methods for objects of class “logit”, i.e. the output objects of the “logit” function. This document is to provide a brief theoretical background for logistic regression and its estimation as well as some helpful examples of how to use the package “Logit”.
+</div>
+
+
+
+<div id="theoretical-introduction" class="section level2">
+<h2>1. Theoretical Introduction</h2>
+<p>The <em>Logit</em> package is an alternative way to perform a binary logistic regression.</p>
+<p>Logistic regression is one of the most widely used regression methods in case of a binary dependent variable, i.e. when the response variable is Bernouille distributed. Given a binary dependent variable y and a vector of explanatory variables x, logistic regression estimates the conditional expectiation of y given x, which is equal to the conditional probability of y being 1 given x. <span class="math display">\[E[y_i|x_i] = 1 * P(y_i = 1|x_i) + 0 * P(y_i = 0|x_i) = P(y_i = 1|x_i).\]</span> I.e. this is especially useful when one is interested in the conditional probability of a success given some individual characteristics.</p>
+<p>The basic idea of logistic regression is to assume the following relationship:</p>
+<p><span class="math display">\[p_i\equiv P(y_i = 1|x_i) = \Lambda (x_i^\top\beta)\]</span> Here, <span class="math inline">\(\Lambda (.)\)</span> is the culmulative distribution function of the standard logistic distribution and defined as <span class="math inline">\(\Lambda (x) = \frac{exp(x)}{1+exp(x)}\)</span>. And just for convenience, let’s denote the conditional probability of y being 1 given x for individual i as <span class="math inline">\(p_i\)</span>.</p>
+<p>This assumption not only ensures that predicted conditional probability of y given x remain in the interval <span class="math inline">\([0, 1]\)</span> - which is not always the case in linear regression model, and since the value to be estimated can be expressed in terms of a (unknown) parameter vector <span class="math inline">\(\beta\)</span>, it enables us to draw easier interpretations from the regression results.</p>
+<div id="estimation-of-coefficients" class="section level4">
+<h4>1.-1) Estimation of coefficients</h4>
+<p>To estimate the coefficient vector <span class="math inline">\(\beta\)</span>, we need to use the Maximum Likelihood (ML) method, where one chooses vector <span class="math inline">\(\beta\)</span> that maximizes the (log) likelihood of observing the given sample,</p>
+<p><span class="math display">\[\hat \beta_{MLE} = \arg\max_{\beta}\ell(\beta)\]</span></p>
+<p>where the log-Likelihood <span class="math inline">\(\ell(\beta)\)</span> and the fitted value <span class="math inline">\(p_i\)</span> defined as <span class="math inline">\(\ell(\beta) = \sum_{i = 1}^{n}(y_i*\ln p_i + (1 - y_i)*\ln(1-p_i))\)</span> and <span class="math inline">\(p_i=\Lambda(x_i^\top\beta)\)</span>.</p>
+<p>Therefore, <span class="math inline">\(\hat \beta_{MLE}\)</span> satisfies (1) FoC: <span class="math inline">\(\ell'(\hat \beta_{MLE}) = 0\)</span> and (2) SoC: <span class="math inline">\(\ell''(\hat \beta_{MLE})&lt;0\)</span>, where the first and second derivatives are taken with respect to <span class="math inline">\(\beta\)</span>.</p>
+<p>Since there exists no anaylitical solution for this maximization problem, the MLE of <span class="math inline">\(\beta\)</span> is obtained by the <em>Gauss-Newton Method</em>, which is also well known as <em>Fisher’s Scoring Method</em>. This non-linear optimization method is based on the following iterative process.</p>
+<p>By the 1st order Taylor expansion, the score function can be approximated as below. <span class="math display">\[\ell'(\beta^{(n+1)}) \approx \ell'(\beta^{(n)}) + \ell''(\beta^{(n)}) \cdot (\beta^{(n+1)} - \beta^{(n)})\]</span> Based on the idea that we are looking for <span class="math inline">\(\beta\)</span> that makes the score value zero, we can develop the iterative formula as follows. <span class="math display">\[\hat\beta^{(n+1)} = \hat\beta^{(n)} - (\ell''(\beta^{(n)}))^{-1} \cdot \ell'(\beta^{(n)})\]</span></p>
+<p>This iterative process continues until the progress in log-Likelihood becomes smaller than the pre-set tolerance level (default: 1e-8), and we get finally a good approximation to <span class="math inline">\(\hat\beta^{MLE}\)</span>.</p>
+</div>
+<div id="estimation-of-asymptotic-variance-of-the-coefficient-estimates" class="section level4">
+<h4>1.-2) Estimation of asymptotic variance of the coefficient estimates</h4>
+<p>The asymptotic variance of the MLE is equal to the inverse of the expected Fisher Information matrix, which can be estimated by the inverse of minus the Hessian matrix. The Hessian matrix is defined as the second order partial derivatives of the log-Likelihood function, and is always negative definite in logistic regression model.</p>
+<p><span class="math display">\[\widehat{aVar}(\hat\beta^{MLE}) = [- H(\hat\beta^{MLE}, y)]^{-1},\]</span> <span class="math display">\[H(\hat\beta^{MLE}, y) = \frac{\partial^2 \ell(\beta, y)}{\partial \beta \partial \beta ^\top}|_{\beta = \hat\beta^{MLE}} = -\sum_{i = 1}^{n}p_i(1-p_i)x_ix_i^{\top}.\]</span></p>
+</div>
+</div>
+<div id="how-to-use-the-package-logit" class="section level2">
+<h2>2. How to use the package “Logit”</h2>
+<p>To show the usage of the function <em>logit</em> in the package <em>Logit</em>, we first need a data set which contains observations for a binary dependent variable as well as for some other explanatory variables. Below is given a virtual data set named “data” with 100 observations which are generated by random simulations of a binomial random variable <em>y</em> and normal random explanatory variables <em>a</em> and <em>b</em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create a data frame with binomial dependent variable y and explanatory variables</span>
+<span class="co"># a and b</span>
+<span class="kw">set.seed</span>(<span class="dv">5</span>)
+data &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="st">&quot;y&quot;</span> =<span class="st"> </span><span class="kw">rbinom</span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>),
+                   <span class="st">&quot;a&quot;</span> =<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n =</span> <span class="dv">100</span>),
+                   <span class="st">&quot;b&quot;</span> =<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">mean =</span> <span class="dv">2</span>, <span class="dt">sd =</span> <span class="fl">0.5</span>))</code></pre></div>
+<p>Now, one can fit the logistic regression model by calling the function <em>logit</em> with a formula and the data frame we created above. This will return an object of class “logit”.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(logit)
+
+<span class="co"># fit the logit model</span>
+logitResult &lt;-<span class="st"> </span><span class="kw">logit</span>(y <span class="op">~</span><span class="st"> </span>a <span class="op">+</span><span class="st"> </span>b, <span class="dt">data =</span> data)
+<span class="kw">class</span>(logitResult)
+<span class="co">#&gt; [1] &quot;logit&quot;</span></code></pre></div>
+<p>The functin <em>logit</em> can be also called with a (named) design matrix <span class="math inline">\(X\)</span> and a vector of dependent variable <span class="math inline">\(y\)</span> as its inputs. Here a constant variable “Intercept” is added to the design matrix to get the comparable result as above.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># create a binomial dependent variable y and a design matrix X</span>
+
+y =<span class="st"> </span>data<span class="op">$</span>y
+X =<span class="st"> </span><span class="kw">cbind</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="dv">100</span>), data<span class="op">$</span>a, data<span class="op">$</span>b)
+<span class="kw">colnames</span>(X) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;(Intercept)&quot;</span>, <span class="st">&quot;a&quot;</span>, <span class="st">&quot;b&quot;</span>)
+
+<span class="co"># fit the logit model</span>
+<span class="kw">logit</span>(<span class="dt">X =</span> X, <span class="dt">y =</span> y)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call: logit.numeric(X = X, y = y)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients: </span>
+<span class="co">#&gt; (Intercept)           a           b </span>
+<span class="co">#&gt;  -0.4472228   0.2205014   0.2025851 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Degrees of Freedom:  99  Total (i.e. Null);   97  Residual</span>
+<span class="co">#&gt; Null Deviance:  138.5894</span>
+<span class="co">#&gt; Residual Deviance:  137.0568</span>
+<span class="co">#&gt; AIC:  143.0568</span></code></pre></div>
+</div>
+<div id="methods-for-class-logit" class="section level2">
+<h2>3. Methods for class “logit”&quot;</h2>
+<p>In the <em>Logit</em> package, there are three S3 Methods for objects of class “logit”.</p>
+<div id="print-method" class="section level4">
+<h4>3.-1) Print method</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(logitResult)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call: logit.formula(y ~ a + b, data = data)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients: </span>
+<span class="co">#&gt; (Intercept)           a           b </span>
+<span class="co">#&gt;  -0.4472228   0.2205014   0.2025851 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Degrees of Freedom:  99  Total (i.e. Null);   97  Residual</span>
+<span class="co">#&gt; Null Deviance:  138.5894</span>
+<span class="co">#&gt; Residual Deviance:  137.0568</span>
+<span class="co">#&gt; AIC:  143.0568</span></code></pre></div>
+<p>From the regression result above, one can draw some useful inferences.</p>
+<p>First, the coefficient estimates tell us the sign of the marginal probability effect of each variable except the intercept. (Note that there exists no marginal effect of the constant term, since it is literally constant over all observations.) <span class="math display">\[MPE_{ij} \equiv \frac{\partial \Lambda(x_i^{\top}\hat\beta)}{\partial \beta_j} = \lambda(x_i^{\top}\hat\beta) \cdot \hat\beta_j\]</span> As one sees in the above formula, the marginal probability effect of the j-th variable of individual i (<span class="math inline">\(MPE_{ij}\)</span>) has the same sign as the j-th coefficient estimate <span class="math inline">\(\hat\beta_j\)</span>, because <span class="math inline">\(\lambda()\)</span> is a pdf function of the standard logistic distribution and therefore only takes non-negative values. In other words, a positive value of the coefficient estimate indicates a postive marginal effect of the variable on the probability of y (dep. var.) being 1, whereas a negative one indicates the opposite.</p>
+<p>Second, the degrees of freedoms and deviances of the null and regressed models provide us with a deviance goodness of fit. Note that the Likelihood-Ratio test statistics <span class="math inline">\(LR = -2 * (loglikelihood_{Restricted} - loglikelihood_{Unrestricted}) \sim \chi^2(p - r)\)</span>, where p and r are the degrees of freedoms of the unrestricted and restricted models respectively. With the restricted being the null model, we obtain the following p-value of 0.5353, based on which we can reject the null that the variables in the regressed model are jointly insignificant.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Likelihood-Ratio test statistics</span>
+LR &lt;-<span class="st"> </span>logitResult<span class="op">$</span>null.deviance <span class="op">-</span><span class="st"> </span>logitResult<span class="op">$</span>deviance
+<span class="kw">pchisq</span>(LR, <span class="dt">df =</span> logitResult<span class="op">$</span>df.null <span class="op">-</span><span class="st"> </span>logitResult<span class="op">$</span>df.residual)  <span class="co"># p-value</span>
+<span class="co">#&gt; [1] 0.5352847</span></code></pre></div>
+<p>Lastly, the AIC value enables a straightforward comparison between different models with the same dependent variable. The smaller the AIC value it is, the better the model is.</p>
+</div>
+<div id="summary-method" class="section level4">
+<h4>3.-2) Summary method</h4>
+<p>The summary method for S3 class <em>logit</em> returns an R object of class <em>summary.logit</em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">summaryLogitResult &lt;-<span class="st"> </span><span class="kw">summary</span>(logitResult)
+<span class="kw">class</span>(summaryLogitResult)
+<span class="co">#&gt; [1] &quot;summary.logit&quot;</span></code></pre></div>
+<p>The print method for S3 class <em>summary.logit</em> is also available.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">print</span>(summaryLogitResult)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call: </span>
+<span class="co">#&gt; logit.formula(y ~ a + b, data = data)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Deviance Residuals: </span>
+<span class="co">#&gt;      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. </span>
+<span class="co">#&gt; -1.365770 -1.143426 -0.922029 -0.006914  1.177065  1.369920 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients: </span>
+<span class="co">#&gt;             Estimate Std. Err. z value Pr(&gt;|z|)</span>
+<span class="co">#&gt; (Intercept) -0.44722   0.87326 -0.5121   0.6086</span>
+<span class="co">#&gt; a            0.22050   0.21510  1.0251   0.3053</span>
+<span class="co">#&gt; b            0.20259   0.41861  0.4839   0.6284</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     Null Deviance:  138.5894  on   99  degrees of freedom</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual Deviance:  137.0568  on   97  degrees of freedom</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; AIC:  143.0568</span></code></pre></div>
+<p>Here, one obtain some additional statistics, namely the quantiles of the deviance residuals and the standard error of the coefficient estimates along with the respective z- and p-values.</p>
+<p>The quantiles of the deviance residuals can be used to check if they follow a certain distribution under some conditions, but in logistic regression this is not used in general. Here it is included in the output of <em>Logit::print.summary.logit</em> to be coherent to that of <em>stats::print.summary.glm</em>.</p>
+<p>The standard error of the coefficient estimates are used to calculate the z-values. (<span class="math inline">\(z_j = \frac{\hat\beta_j}{S.E.(\hat\beta_j)}\)</span>) Based on the corresponding p-values, one can make a decision on the statistical significance of the respective coefficient estimates in comparison to the pre-set significance level (which is in general <span class="math inline">\(\alpha = 0.05\)</span>). From the above example, one can say therefore, that every regressor is statistically insignificant at the 5% significance level, since the p-values are greater than <span class="math inline">\(\alpha\)</span> for every regressor - intercept, a, b. But note that this is not a joint test and one is not allowed to infer that all the regressors are at the same time insignificant. This joint hypothesis - that all the regressors are at the same time insignificant - is in fact rejected as we have already seen from the LR test using the null and residual deviance in section <em>3.-1) Print method</em>.</p>
+</div>
+<div id="plot-method" class="section level4">
+<h4>3.-3) Plot method</h4>
+<p>The plot method for S3 class “logit” provides 5 different graphics, namely “Box plots: Regressor ~ dep. var.”, “Regression Fit”, “Residuals vs Fitted”, “Normal Q-Q” and “Scale-Location”.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(logitResult)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<pre><code>#&gt; Pause. Press &lt;Enter&gt; to continue...</code></pre>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The first graphic is a set of box plots that show the distribution of each regressor according to the dependent variable values (0 or 1). Here one can get a brief understanding of the dependency of the y variable on each regressor.</p>
+<p>By hitting <Return> in the console window, the next four graphics are displayed.</p>
+<p>The top-left graphic “Regression Fit” shows the blue regression fit line as well as the true binomial values (black points).</p>
+<p>Next comes the “Residuals vs Fitted” on the top-right. This is often used to detect the curvilinearity of the fitted line, which shows obvious curvilinearity here in the above example, because logistic regression has by nature a curvilinear fit. (Included only for comparison to the method <em>stats::plot.lm</em>.)</p>
+<p>On the bottom-left, “Normal Q-Q” plot is provided, which is used to detect the normality of the residuals. In logistic regression, it is not assumed or required that the residuals follow normal distribution. In the above example, one can see the residuals obviously off the line. (Included only for comparison to the method <em>stats::plot.lm</em>.)</p>
+<p>Lastly, the “Scale-Location” graphic is provided. This gives information about the existence of heteroscedasticity. In logistic regression, there exists however a built-in heteroscedasticity as it can be checked in the above graphic. This is because the variance of the Bernoulli variable y depends on the individual x values. (<span class="math inline">\(var(y) = p_i (1-p_i)\)</span>, <span class="math inline">\(p_i = \Lambda (x_i^{\top}\beta)\)</span>) (Included only for comparison to the method <em>stats::plot.lm</em>.)</p>
+</div>
+</div>
+<div id="tests-to-assure-correct-functionality" class="section level2">
+<h2>4. Tests to assure correct functionality</h2>
+<p>To ensure that the <em>logit</em> function returns statistically correct outcome, it is needed to compare the results from <em>Logit::logit</em> to those of <em>stats::glm</em>. (Note that <em>expect_equivalent</em> and <em>expect_that</em> functions from the package “testthat” do not print anything if the test is successful.)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(testthat)
+
+
+<span class="co"># results from stats::glm</span>
+logitOrig &lt;-<span class="st"> </span><span class="kw">glm</span>(y <span class="op">~</span><span class="st"> </span>a <span class="op">+</span><span class="st"> </span>b, <span class="dt">data =</span> data, <span class="dt">family =</span> <span class="kw">binomial</span>(<span class="st">&quot;logit&quot;</span>))
+
+<span class="co"># testing the coefficient estimates</span>
+<span class="kw">expect_equivalent</span>(logitOrig<span class="op">$</span>coefficients, logitResult<span class="op">$</span>coefficients)
+<span class="co"># the class of the output object of the function logit</span>
+<span class="kw">expect_that</span>(logitResult, <span class="kw">is_a</span>(<span class="st">&quot;logit&quot;</span>))
+
+
+logitResultSummary &lt;-<span class="st"> </span><span class="kw">summary</span>(logitResult)
+logitOrigSummary &lt;-<span class="st"> </span><span class="kw">summary</span>(logitOrig)
+
+<span class="co"># testing the coefficient estimates, S.E., z- and p-values</span>
+<span class="kw">expect_equivalent</span>(logitOrigSummary<span class="op">$</span>coefficients,
+                  logitResultSummary<span class="op">$</span>coefficients)
+<span class="co"># the class of the output object of the function summary.logit</span>
+<span class="kw">expect_that</span>(logitResultSummary, <span class="kw">is_a</span>(<span class="st">&quot;summary.logit&quot;</span>))</code></pre></div>
+</div>
+<div id="discussion" class="section level2">
+<h2>5. Discussion</h2>
+<p>As demonstrated above, the package “Logit” provides a function <em>logit</em> to fit a logistic regression model, along with some S3 methods for the objects of class <em>logit</em>/<em>summary.logit</em>.</p>
+<p>The input arguments and output elements are chosen basically so that they are similar to those of <em>stats::glm</em>. This ensures that the function <em>logit</em> can be used instead of <em>stats::glm(…, family = binomial(“logit”))</em> without critical constraints.</p>
+<p>In the plot method, however, the package “Logit” returns somewhat different set graphics as <em>stats::plot.lm</em>. This is because <em>stats::plot.lm</em> is in fact more useful for linear regression model and does not give much useful information for logistic regression model. In the package “Logit”, there are two new graphics added which would give some useful insights for logistic regression models, namely a set of box plots of each regressor based on y values and a regression fit graphic.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>Werwatz A. (Winter Semester 2018/19) <em>“Ch1. Binary Dependent Variable”</em>, <em>“Ch2. Hypothesis Testing”</em>. Lecture note from the course <em>[Microeconometrics]</em>. Technical University of Berlin.</p>
+<p>Reiss M. (Winter Semester 2018/19) <em>“Ch4. Exponential Family and Generalized Linear Model”</em>. Lecture note from the course <em>[Methods of Statistics]</em>, 105-127. URL <a href="https://www.math.hu-berlin.de/~mreiss/Buch031017.pdf" class="uri">https://www.math.hu-berlin.de/~mreiss/Buch031017.pdf</a>. Humboldt University of Berlin.</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

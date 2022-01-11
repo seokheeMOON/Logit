@@ -1,0 +1,219 @@
+---
+title: "Logistic Regression Model"
+author: 
+ - name: "Seokhee Moon (Student ID: 5285129)"
+   affiliation: "Free University of Berlin"
+date: "`r Sys.Date()`"
+abstract: "Logistic Regression is a very widely used regression method for a binary response variable. The package \"Logit\" provides a generic function \"logit\" with which one can fit a logistic regression model, together with some S3 methods for objects of class \"logit\", i.e. the output objects of the \"logit\" function. This document is to provide a brief theoretical background for logistic regression and its estimation as well as some helpful examples of how to use the package \"Logit\"."
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+
+## 1. Theoretical Introduction
+
+The *Logit* package is an alternative way to perform a binary logistic regression. 
+
+Logistic regression is one of the most widely used regression methods in case of a binary dependent variable, i.e. when the response variable is Bernouille distributed. Given a binary dependent variable y and a vector of explanatory variables x, logistic regression estimates the conditional expectiation of y given x, which is equal to the conditional probability of y being 1 given x. 
+$$E[y_i|x_i] = 1 * P(y_i = 1|x_i) + 0 * P(y_i = 0|x_i) = P(y_i = 1|x_i).$$ I.e. this is especially useful when one is interested in the conditional probability of a success given some individual characteristics. 
+
+The basic idea of logistic regression is to assume the following relationship:
+
+$$p_i\equiv P(y_i = 1|x_i) = \Lambda (x_i^\top\beta)$$
+Here, $\Lambda (.)$ is the culmulative distribution function of the standard logistic distribution and defined as $\Lambda (x) = \frac{exp(x)}{1+exp(x)}$. And just for convenience, let's denote the conditional probability of y being 1 given x for individual i as $p_i$.
+
+This assumption not only ensures that predicted conditional probability of y given x remain in the interval $[0, 1]$ - which is not always the case in linear regression model, and since the value to be estimated can be expressed in terms of a (unknown) parameter vector $\beta$, it enables us to draw easier interpretations from the regression results.
+
+
+#### 1.-1) Estimation of coefficients
+To estimate the coefficient vector $\beta$, we need to use the Maximum Likelihood (ML) method, where one chooses vector $\beta$ that maximizes the (log) likelihood of observing the given sample,
+
+$$\hat \beta_{MLE} = \arg\max_{\beta}\ell(\beta)$$
+
+where the log-Likelihood $\ell(\beta)$ and the fitted value $p_i$ defined as $\ell(\beta) = \sum_{i = 1}^{n}(y_i*\ln p_i + (1 - y_i)*\ln(1-p_i))$ and $p_i=\Lambda(x_i^\top\beta)$.
+
+Therefore, $\hat \beta_{MLE}$ satisfies (1) FoC: $\ell'(\hat \beta_{MLE}) = 0$ and (2) SoC: $\ell''(\hat \beta_{MLE})<0$, where the first and second derivatives are taken with respect to $\beta$.
+
+Since there exists no anaylitical solution for this maximization problem, the MLE of $\beta$ is obtained by the *Gauss-Newton Method*, which is also well known as *Fisher's Scoring Method*. This non-linear optimization method is based on the following iterative process.
+
+By the 1st order Taylor expansion, the score function can be approximated as below.
+$$\ell'(\beta^{(n+1)}) \approx \ell'(\beta^{(n)}) + \ell''(\beta^{(n)}) \cdot (\beta^{(n+1)} - \beta^{(n)})$$
+Based on the idea that we are looking for $\beta$ that makes the score value zero, we can develop the iterative formula as follows.
+$$\hat\beta^{(n+1)} = \hat\beta^{(n)} - (\ell''(\beta^{(n)}))^{-1} \cdot \ell'(\beta^{(n)})$$
+
+This iterative process continues until the progress in log-Likelihood becomes smaller than the pre-set tolerance level (default: 1e-8), and we get finally a good approximation to $\hat\beta^{MLE}$.
+
+
+
+#### 1.-2) Estimation of asymptotic variance of the coefficient estimates
+The asymptotic variance of the MLE is equal to the inverse of the expected Fisher Information matrix, which can be estimated by the inverse of minus the Hessian matrix. The Hessian matrix is defined as the second order partial derivatives of the log-Likelihood function, and is always negative definite in logistic regression model.
+
+$$\widehat{aVar}(\hat\beta^{MLE}) = [- H(\hat\beta^{MLE}, y)]^{-1},$$
+$$H(\hat\beta^{MLE}, y) = \frac{\partial^2 \ell(\beta, y)}{\partial \beta \partial \beta ^\top}|_{\beta = \hat\beta^{MLE}} = -\sum_{i = 1}^{n}p_i(1-p_i)x_ix_i^{\top}.$$
+
+
+## 2. How to use the package "Logit"
+
+To show the usage of the function *logit* in the package *Logit*, we first need a data set which contains observations for a binary dependent variable as well as for some other explanatory variables. Below is given a virtual data set named "data" with 100 observations which are generated by random simulations of a binomial random variable *y* and normal random explanatory variables *a* and *b*. 
+```{r}
+# create a data frame with binomial dependent variable y and explanatory variables
+# a and b
+set.seed(5)
+data <- data.frame("y" = rbinom(n = 100, size = 1, prob = 0.5),
+                   "a" = rnorm(n = 100),
+                   "b" = rnorm(n = 100, mean = 2, sd = 0.5))
+```
+
+Now, one can fit the logistic regression model by calling the function *logit* with a formula and the data frame we created above. This will return an object of class "logit".
+```{r}
+library(logit)
+
+# fit the logit model
+logitResult <- logit(y ~ a + b, data = data)
+class(logitResult)
+```
+
+The functin *logit* can be also called with a (named) design matrix $X$ and a vector of dependent variable $y$ as its inputs. Here a constant variable "Intercept" is added to the design matrix to get the comparable result as above.
+```{r}
+# create a binomial dependent variable y and a design matrix X
+
+y = data$y
+X = cbind(rep(1, 100), data$a, data$b)
+colnames(X) <- c("(Intercept)", "a", "b")
+
+# fit the logit model
+logit(X = X, y = y)
+```
+
+
+## 3. Methods for class "logit""
+
+In the *Logit* package, there are three S3 Methods for objects of class "logit".
+
+#### 3.-1) Print method
+```{r}
+print(logitResult)
+```
+From the regression result above, one can draw some useful inferences.
+
+First, the coefficient estimates tell us the sign of the marginal probability effect of each variable except the intercept. (Note that there exists no marginal effect of the constant term, since it is literally constant over all observations.)
+$$MPE_{ij} \equiv \frac{\partial \Lambda(x_i^{\top}\hat\beta)}{\partial \beta_j} = \lambda(x_i^{\top}\hat\beta) \cdot \hat\beta_j$$
+As one sees in the above formula, the marginal probability effect of the j-th variable of individual i ($MPE_{ij}$) has the same sign as the j-th coefficient estimate $\hat\beta_j$, because $\lambda()$ is a pdf function of the standard logistic distribution and therefore only takes non-negative values.
+In other words, a positive value of the coefficient estimate indicates a postive marginal effect of the variable on the probability of y (dep. var.) being 1, whereas a negative one indicates the opposite.
+
+Second, the degrees of freedoms and deviances of the null and regressed models provide us with a deviance goodness of fit. Note that the Likelihood-Ratio test statistics $LR = -2 * (loglikelihood_{Restricted} - loglikelihood_{Unrestricted}) \sim \chi^2(p - r)$, where p and r are the degrees of freedoms of the unrestricted and restricted models respectively. 
+With the restricted being the null model, we obtain the following p-value of 0.5353, based on which we can reject the null that the variables in the regressed model are jointly insignificant.
+```{r}
+# Likelihood-Ratio test statistics
+LR <- logitResult$null.deviance - logitResult$deviance
+pchisq(LR, df = logitResult$df.null - logitResult$df.residual)  # p-value
+```
+
+Lastly, the AIC value enables a straightforward comparison between different models with the same dependent variable. The smaller the AIC value it is, the better the model is. 
+
+
+
+
+#### 3.-2) Summary method 
+The summary method for S3 class *logit* returns an R object of class *summary.logit*.
+```{r}
+summaryLogitResult <- summary(logitResult)
+class(summaryLogitResult)
+```
+
+The print method for S3 class *summary.logit* is also available. 
+```{r}
+print(summaryLogitResult)
+```
+
+Here, one obtain some additional statistics, namely the quantiles of the deviance residuals and the standard error of the coefficient estimates along with the respective z- and p-values.
+
+The quantiles of the deviance residuals can be used to check if they follow a certain distribution under some conditions, but in logistic regression this is not used in general. Here it is included in the output of  *Logit::print.summary.logit* to be coherent to that of *stats::print.summary.glm*.
+
+The standard error of the coefficient estimates are used to calculate the z-values. ($z_j = \frac{\hat\beta_j}{S.E.(\hat\beta_j)}$) Based on the corresponding p-values, one can make a decision on the statistical significance of the respective coefficient estimates in comparison to the pre-set significance level (which is in general $\alpha = 0.05$). From the above example, one can say therefore, that every regressor is statistically insignificant at the 5% significance level, since the p-values are greater than $\alpha$ for every regressor - intercept, a, b. But note that this is not a joint test and one is not allowed to infer that all the regressors are at the same time insignificant. This joint hypothesis - that all the regressors are at the same time insignificant - is in fact rejected as we have already seen from the LR test using the null and residual deviance in section *3.-1) Print method*.
+
+
+
+#### 3.-3) Plot method
+The plot method for S3 class "logit" provides 5 different graphics, namely "Box plots: Regressor ~ dep. var.", "Regression Fit", "Residuals vs Fitted", "Normal Q-Q" and "Scale-Location". 
+
+```{r, fig.width=6}
+plot(logitResult)
+```
+
+The first graphic is a set of box plots that show the distribution of each regressor according to the dependent variable values (0 or 1). Here one can get a brief understanding of the dependency of the y variable on each regressor. 
+
+By hitting <Return> in the console window, the next four graphics are displayed. 
+
+The top-left graphic "Regression Fit" shows the blue regression fit line as well as the true binomial values (black points).
+
+Next comes the "Residuals vs Fitted" on the top-right. This is often used to detect the curvilinearity of the fitted line, which shows obvious curvilinearity here in the above example, because logistic regression has by nature a curvilinear fit. (Included only for comparison to the method *stats::plot.lm*.)
+
+On the bottom-left, "Normal Q-Q" plot is provided, which is used to detect the normality of the residuals. In logistic regression, it is not assumed or required that the residuals follow normal distribution. In the above example, one can see the residuals obviously off the line. (Included only for comparison to the method *stats::plot.lm*.)
+
+Lastly, the "Scale-Location" graphic is provided. This gives information about the existence of heteroscedasticity. In logistic regression, there exists however a built-in heteroscedasticity as it can be checked in the above graphic. This is because the variance of the Bernoulli variable y depends on the individual x values. ($var(y) = p_i (1-p_i)$, $p_i = \Lambda (x_i^{\top}\beta)$) (Included only for comparison to the method *stats::plot.lm*.)
+
+
+
+## 4. Tests to assure correct functionality
+
+To ensure that the *logit* function returns statistically correct outcome, it is needed to compare the results from *Logit::logit* to those of *stats::glm*. (Note that *expect_equivalent* and *expect_that* functions from the package "testthat" do not print anything if the test is successful.)
+
+```{r}
+library(testthat)
+
+
+# results from stats::glm
+logitOrig <- glm(y ~ a + b, data = data, family = binomial("logit"))
+
+# testing the coefficient estimates
+expect_equivalent(logitOrig$coefficients, logitResult$coefficients)
+# the class of the output object of the function logit
+expect_that(logitResult, is_a("logit"))
+
+
+logitResultSummary <- summary(logitResult)
+logitOrigSummary <- summary(logitOrig)
+
+# testing the coefficient estimates, S.E., z- and p-values
+expect_equivalent(logitOrigSummary$coefficients,
+                  logitResultSummary$coefficients)
+# the class of the output object of the function summary.logit
+expect_that(logitResultSummary, is_a("summary.logit"))
+
+```
+
+
+
+## 5. Discussion
+
+As demonstrated above, the package "Logit" provides a function *logit* to fit a logistic regression model, along with some S3 methods for the objects of class *logit*/*summary.logit*. 
+
+The input arguments and output elements are chosen basically so that they are similar to those of *stats::glm*. This ensures that the function *logit* can be used instead of *stats::glm(..., family = binomial("logit"))* without critical constraints. 
+
+In the plot method, however, the package "Logit" returns somewhat different set graphics as *stats::plot.lm*. This is because *stats::plot.lm* is in fact more useful for linear regression model and does not give much useful information for logistic regression model. In the package "Logit", there are two new graphics added which would give some useful insights for logistic regression models, namely a set of box plots of each regressor based on y values and a regression fit graphic.
+
+
+
+
+## References
+
+Werwatz A. (Winter Semester 2018/19) *"Ch1. Binary Dependent Variable"*, *"Ch2. Hypothesis Testing"*. Lecture note from the course *[Microeconometrics]*. Technical University of Berlin.
+
+Reiss M. (Winter Semester 2018/19) *"Ch4. Exponential Family and Generalized Linear Model"*. Lecture note from the course *[Methods of Statistics]*, 105-127. URL https://www.math.hu-berlin.de/~mreiss/Buch031017.pdf. Humboldt University of Berlin.
+
+
+
+
+
